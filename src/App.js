@@ -12,7 +12,7 @@
     onScopeChange: function() {
       Ext.create('Rally.data.WsapiDataStore', {
 	model: 'User Story',
-	fetch: ['FormattedID','Name','Tasks'],  
+	fetch: ['FormattedID','Name', 'ScheduleState','Tasks'],  
 	limit: Infinity,
 	autoLoad: true,
 	filters: [this.getContext().getTimeboxScope().getQueryFilter()],
@@ -56,7 +56,7 @@
       var deferred = Ext.create('Deft.Deferred');
       var that = scope;
       
-      var taskCollection = story.getCollection('Tasks',{fetch: ['Name', 'FormattedID']});
+      var taskCollection = story.getCollection('Tasks',{fetch: ['Name', 'FormattedID', 'State']});
       taskCollection.load({
 	callback: function(records, operation, success){
 	  _.each(records, function(task){
@@ -66,6 +66,7 @@
 	    "_ref": story.get('_ref'),
             "FormattedID": story.get('FormattedID'),
             "Name": story.get('Name'),
+	    "ScheduleState":story.get('ScheduleState'),
             "Tasks": tasks
 	  };
 	  deferred.resolve(s);
@@ -99,13 +100,16 @@
 	      text: 'Name', dataIndex: 'Name',
 	    },
 	    {
+	      text: 'ScheduleState', dataIndex: 'ScheduleState',
+	    },
+	    {
 		text: 'Tasks', dataIndex: 'Tasks', flex:1,
 		renderer: function(value) {
 		    var html = [];
 		    _.each(value, function(task){
-			html.push('<a href="' + Rally.nav.Manager.getDetailUrl(task) + '">' + task.get('FormattedID') + '</a>');
+			html.push('<a href="' + Rally.nav.Manager.getDetailUrl(task) + '">' + task.get('FormattedID') + '</a>' + ' ' + task.get('Name') + ' ' + task.get('State'));
 		    });
-		    return html.join(', ');
+		    return html.join('<br/>');
 		}
 	    }  
 	]
