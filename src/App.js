@@ -7,10 +7,35 @@
         labelWidth: 100,
         width: 300
     },
-   
+    
   
     onScopeChange: function() {
-      Ext.create('Rally.data.WsapiDataStore', {
+      //var that = this;
+      if (!this.down('#userCombobox')) {
+	this.add({
+	    xtype: 'rallyusersearchcombobox',
+	    itemId: 'userCombobox',
+	    fieldLabel: 'SELECT USER:',
+	    project: this.getContext().getProject()._ref,
+		listeners:{
+		    ready: function(combobox){
+			this._onUserSelected(combobox.getRecord());
+		   },
+		   select: function(combobox){
+			this._onUserSelected(combobox.getRecord());
+		   },
+		    scope: this
+		}
+	})
+      }
+      this._makeStore();
+    },
+    
+    _onUserSelected:function(record){
+	console.log('user', record);
+    },
+    _makeStore:function(){
+	Ext.create('Rally.data.WsapiDataStore', {
 	model: 'User Story',
 	fetch: ['FormattedID','Name', 'ScheduleState','Tasks'],  
 	limit: Infinity,
@@ -20,7 +45,7 @@
 	    load: this._onStoriesLoaded,
 	    scope: this
 	}
-    });
+	});
     },
     
     _onStoriesLoaded:function(store, records){
@@ -56,7 +81,7 @@
       var deferred = Ext.create('Deft.Deferred');
       var that = scope;
       
-      var taskCollection = story.getCollection('Tasks',{fetch: ['Name', 'FormattedID', 'State']});
+      var taskCollection = story.getCollection('Tasks',{fetch: ['Name', 'FormattedID', 'State', 'Owner']});
       taskCollection.load({
 	callback: function(records, operation, success){
 	  _.each(records, function(task){
@@ -105,9 +130,11 @@
 	    {
 		text: 'Tasks', dataIndex: 'Tasks', flex:1,
 		renderer: function(value) {
+		    var owner;
 		    var html = [];
 		    _.each(value, function(task){
-			html.push('<a href="' + Rally.nav.Manager.getDetailUrl(task) + '">' + task.get('FormattedID') + '</a>' + ' ' + task.get('Name') + ' ' + task.get('State'));
+			owner = (task.get('Owner') && task.get('Owner')._refObjectName) || 'None';
+			html.push('<a href="' + Rally.nav.Manager.getDetailUrl(task) + '">' + task.get('FormattedID') + '</a>' + ' <b>Name:</b>' + task.get('Name') + ' <b>State:</b>' + task.get('State') + ' <b>Owner:</b>' + owner) ;
 		    });
 		    return html.join('<br/>');
 		}
