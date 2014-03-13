@@ -21,7 +21,6 @@
     
   
     onScopeChange: function() {
-      //var that = this;
       if (!this.down('#userCombobox')) {
 	this.add({
 	    xtype: 'rallyusersearchcombobox',
@@ -39,19 +38,30 @@
 		}
 	})
       }
-      this._makeStore();
+      //this._makeStore();
+      else{
+	this._onUserSelected(this.down('#userCombobox').getRecord());
+      }
     },
     
-    _onUserSelected:function(record){
-	console.log('user', record);
+    _onUserSelected:function(user){
+	    this._selectedUser = user.get('_refObjectName')
+	    console.log('user', this._selectedUser);
+	    this._makeStore();
     },
     _makeStore:function(){
 	Ext.create('Rally.data.WsapiDataStore', {
 	model: 'User Story',
-	fetch: ['FormattedID','Name', 'ScheduleState','Tasks'],  
+	fetch: ['FormattedID','Name', 'ScheduleState','Tasks','DragAndDropRank'],  
 	limit: Infinity,
 	autoLoad: true,
 	filters: [this.getContext().getTimeboxScope().getQueryFilter()],
+	sorters: [
+	    {
+	    property: 'DragAndDropRank',
+	    direction: 'DESC'
+	    }
+	],
 	listeners: {
 	    load: this._onStoriesLoaded,
 	    scope: this
@@ -86,6 +96,7 @@
 	
      }, 
     _getTasks:function(story, scope){
+      var that = this;
       var tasks = [];
       var s = {};
       
@@ -96,7 +107,12 @@
       taskCollection.load({
 	callback: function(records, operation, success){
 	  _.each(records, function(task){
-	    tasks.push(task);
+	    var owner = (task.get('Owner') && task.get('Owner')._refObjectName) || '-- No Entry --';
+	    console.log('task owner', owner, 'this._selectedUser', that._selectedUser);
+	    if (owner===that._selectedUser) {
+		//only show tasks owned by the selected user
+		tasks.push(task);
+	    }
 	  });
 	  s = {
 	    "_ref": story.get('_ref'),
