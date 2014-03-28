@@ -1,4 +1,4 @@
-User Stories by Iteration with Tasks owned by selected user
+User Stories and Defects by Iteration with Tasks owned by selected user
 =========================
 
 ## Overview

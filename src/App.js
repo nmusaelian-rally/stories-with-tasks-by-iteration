@@ -39,23 +39,27 @@
 	    this._makeStore();
     },
     _makeStore:function(){
-	Ext.create('Rally.data.WsapiDataStore', {
-	model: 'User Story',
-	fetch: ['FormattedID','Name', 'ScheduleState','Tasks','DragAndDropRank'],  
-	limit: Infinity,
-	autoLoad: true,
-	filters: [this.getContext().getTimeboxScope().getQueryFilter()],
-	sorters: [
-	    {
-	    property: 'DragAndDropRank',
-	    direction: 'DESC'
+	//added 'Defect'
+	//Ext.create('Rally.data.WsapiDataStore', {
+	//model: 'User Story',
+	
+	Ext.create('Rally.data.wsapi.artifact.Store',{
+	    models: ['User Story','Defect'],
+	    fetch: ['FormattedID','Name', 'ScheduleState','Tasks','DragAndDropRank'],  
+	    limit: Infinity,
+	    autoLoad: true,
+	    filters: [this.getContext().getTimeboxScope().getQueryFilter()],
+	    sorters: [
+		{
+		property: 'DragAndDropRank',
+		direction: 'DESC'
+		}
+	    ],
+	    listeners: {
+		load: this._onStoriesLoaded,
+		scope: this
 	    }
-	],
-	listeners: {
-	    load: this._onStoriesLoaded,
-	    scope: this
-	}
-	});
+	    });
     },
     
     _onStoriesLoaded:function(store, records){
@@ -132,6 +136,7 @@
 	xtype: 'rallygrid',
 	itemId: 'storyGrid',
 	store: gridStore,
+	disableColumnMenus: false,
 	columnCfgs:[
 	    {
 	      text: 'Formatted ID', dataIndex: 'FormattedID', xtype: 'templatecolumn',
